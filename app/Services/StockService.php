@@ -11,8 +11,7 @@ class StockService
 {
     public function __construct(
         private readonly ProductBatchRepositoryInterface $batchRepository
-    ) {
-    }
+    ) {}
 
     public function allocateBatchesFefo(Product $product, int $quantity): Collection
     {
@@ -37,7 +36,9 @@ class StockService
         }
 
         if ($remaining > 0) {
-            throw new RuntimeException("Insufficient stock for product #{$product->id}");
+            throw new RuntimeException(
+                "المخزون غير كافٍ للمنتج «{$product->name}» (المتبقي أقل من الكمية المطلوبة)."
+            );
         }
 
         return $allocations;

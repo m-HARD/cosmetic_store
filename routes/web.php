@@ -1,18 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\POSController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\POSController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserManagementController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return auth()->check()
@@ -51,9 +51,12 @@ Route::middleware(['auth', 'role:SUPER ADMIN,INVENTORY MANAGER'])->group(functio
     Route::post('/api/inventory/losses', [InventoryController::class, 'markAsLoss']);
 });
 
+Route::middleware(['auth', 'role:SUPER ADMIN,INVENTORY MANAGER,CASHIER'])->group(function (): void {
+    Route::post('/api/pos/sales', [POSController::class, 'store']);
+});
+
 Route::middleware(['auth', 'role:SUPER ADMIN,CASHIER'])->group(function (): void {
     Route::get('/refunds', [PageController::class, 'refunds']);
-    Route::post('/api/pos/sales', [POSController::class, 'store']);
     Route::post('/api/refunds', [RefundController::class, 'store']);
 });
 

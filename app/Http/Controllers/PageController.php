@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\ReportService;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -9,9 +11,9 @@ use Inertia\Response;
 class PageController extends Controller
 {
     public function __construct(
-        private readonly ReportService $reportService
-    ) {
-    }
+        private readonly ReportService $reportService,
+        private readonly ProductRepositoryInterface $productRepository
+    ) {}
 
     public function dashboard(): Response
     {
@@ -22,7 +24,15 @@ class PageController extends Controller
 
     public function pos(): Response
     {
-        return Inertia::render('POS/POSPage');
+        $categories = Category::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return Inertia::render('POS/POSPage', [
+            'categories' => $categories,
+            'products' => $this->productRepository->activeForPosCatalog(),
+        ]);
     }
 
     public function reports(): Response

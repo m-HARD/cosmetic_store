@@ -1,5 +1,5 @@
 <script setup>
-defineProps({ categories: Array, activeCategory: Number });
+defineProps({ categories: Array, activeCategory: [Number, String] });
 const emit = defineEmits(['select']);
 </script>
 

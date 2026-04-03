@@ -3,22 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Services\POSService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use RuntimeException;
 
 class POSController extends Controller
 {
     public function __construct(
         private readonly POSService $posService
-    ) {
-    }
+    ) {}
 
     public function store(Request $request): JsonResponse
     {
         $payload = $request->validate([
-            'cashier_id' => ['required', 'integer', 'exists:users,id'],
             'payment_method' => ['required', 'string', 'in:cash,bankak'],
-            'bankak_reference_last5' => ['nullable', 'string', 'size:5'],
+            'bankak_reference_last5' => [
+                Rule::requiredIf($request->input('payment_method') === 'bankak'),
+                'nullable',
+                'string',
+                'size:5',
+            ],
             'subtotal' => ['required', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'tax' => ['nullable', 'numeric', 'min:0'],
@@ -31,8 +36,18 @@ class POSController extends Controller
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
         ]);
 
-        // إنشاء البيع داخل transaction لضمان سلامة خصم المخزون مع الفاتورة.
-        $sale = $this->posService->createSale($payload);
+        $payload['cashier_id'] = (int) $request->user()->id;
+        if ($payload['payment_method'] === 'cash') {
+            $payload['bankak_reference_last5'] = null;
+        }
+
+        try {
+            $sale = $this->posService->createSale($payload);
+        } catch (RuntimeException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
 
         return response()->json($sale, 201);
     }

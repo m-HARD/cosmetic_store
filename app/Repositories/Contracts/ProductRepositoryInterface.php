@@ -12,6 +12,13 @@ interface ProductRepositoryInterface
 
     public function allActive(): Collection;
 
+    /**
+     * منتجات نشطة مع المخزون المتاح لشاشة نقطة البيع (تحميل مسبق).
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function activeForPosCatalog(): Collection;
+
     public function findByBarcode(string $barcode): ?Product;
 
     public function findById(int $id): ?Product;
