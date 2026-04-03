@@ -39,6 +39,9 @@ Route::middleware(['auth', 'role:SUPER ADMIN,INVENTORY MANAGER,CASHIER,ACCOUNTS'
 });
 
 Route::middleware(['auth', 'role:SUPER ADMIN,INVENTORY MANAGER'])->group(function (): void {
+    Route::get('/inventory', [PageController::class, 'inventory']);
+    Route::get('/suppliers', [PageController::class, 'suppliers']);
+    Route::get('/products', [PageController::class, 'products']);
     Route::get('/api/products', [ProductController::class, 'index']);
     Route::post('/api/products', [ProductController::class, 'store']);
     Route::get('/api/suppliers', [SupplierController::class, 'index']);
@@ -49,16 +52,19 @@ Route::middleware(['auth', 'role:SUPER ADMIN,INVENTORY MANAGER'])->group(functio
 });
 
 Route::middleware(['auth', 'role:SUPER ADMIN,CASHIER'])->group(function (): void {
+    Route::get('/refunds', [PageController::class, 'refunds']);
     Route::post('/api/pos/sales', [POSController::class, 'store']);
     Route::post('/api/refunds', [RefundController::class, 'store']);
 });
 
 Route::middleware(['auth', 'role:SUPER ADMIN,ACCOUNTS'])->group(function (): void {
+    Route::get('/expenses', [PageController::class, 'expenses']);
     Route::get('/api/expenses', [ExpenseController::class, 'index']);
     Route::post('/api/expenses', [ExpenseController::class, 'store']);
 });
 
 Route::middleware(['auth', 'role:SUPER ADMIN'])->group(function (): void {
+    Route::get('/users', [PageController::class, 'users']);
     Route::get('/api/users', [UserManagementController::class, 'index']);
     Route::put('/api/users/{user}', [UserManagementController::class, 'update']);
     Route::delete('/api/users/{user}', [UserManagementController::class, 'destroy']);

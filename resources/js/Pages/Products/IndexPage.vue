@@ -5,9 +5,9 @@ import AppSidebarLayout from '../../Layouts/AppSidebarLayout.vue';
 <template>
     <AppSidebarLayout>
         <main class="p-6">
-            <h1 class="text-2xl font-bold">إدارة المخزون</h1>
+            <h1 class="text-2xl font-bold">المنتجات</h1>
             <p class="mt-2 text-slate-600">
-                متابعة الدُفعات، تواريخ الانتهاء، التنبيهات، وتسجيل الخسائر. (ربط واجهة API لاحقًا)
+                إدارة المنتجات والباركود والأسعار. (واجهة الربط بـ API قيد التطوير)
             </p>
         </main>
     </AppSidebarLayout>

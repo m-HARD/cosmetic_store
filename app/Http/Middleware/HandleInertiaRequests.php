@@ -18,8 +18,14 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            // بيانات المستخدم للواجهة مع أسماء الأدوار لفرز عناصر السايدبار.
             'auth' => [
-                'user' => $request->user(),
+                'user' => fn () => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'roles' => $request->user()->roles()->pluck('name')->all(),
+                ] : null,
             ],
         ];
     }

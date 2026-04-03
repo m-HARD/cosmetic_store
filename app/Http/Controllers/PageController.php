@@ -31,4 +31,34 @@ class PageController extends Controller
             'summary' => $this->reportService->dashboardSummary(),
         ]);
     }
+
+    public function inventory(): Response
+    {
+        return Inertia::render('Inventory/IndexPage');
+    }
+
+    public function suppliers(): Response
+    {
+        return Inertia::render('Suppliers/IndexPage');
+    }
+
+    public function expenses(): Response
+    {
+        return Inertia::render('Expenses/IndexPage');
+    }
+
+    public function refunds(): Response
+    {
+        return Inertia::render('Refunds/IndexPage');
+    }
+
+    public function products(): Response
+    {
+        return Inertia::render('Products/IndexPage');
+    }
+
+    public function users(): Response
+    {
+        return Inertia::render('Users/IndexPage');
+    }
 }
