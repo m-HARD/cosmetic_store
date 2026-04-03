@@ -14,6 +14,7 @@ use App\Repositories\ProductBatchRepository;
 use App\Repositories\ProductRepository;
 use App\Repositories\RefundRepository;
 use App\Repositories\SaleRepository;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -36,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // توافق MySQL مع utf8mb4: تقليل طول varchar الافتراضي لتفادي خطأ "Specified key was too long".
+        Schema::defaultStringLength(191);
     }
 }
