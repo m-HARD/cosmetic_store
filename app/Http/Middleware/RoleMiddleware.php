@@ -13,7 +13,12 @@ class RoleMiddleware
         $user = $request->user();
 
         if (! $user) {
-            abort(401, 'غير مصرح.');
+            // طلبات الويب: توجيه لصفحة الدخول. طلبات JSON/API: 401.
+            if ($request->expectsJson()) {
+                abort(401, 'غير مصرح.');
+            }
+
+            return redirect()->guest(route('login'));
         }
 
         // التحقق من الدور باستخدام العلاقة المحلية لتفادي ربط التنفيذ بحزمة واحدة فقط.
