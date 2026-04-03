@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\POSController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
@@ -29,6 +30,9 @@ Route::middleware(['role:SUPER ADMIN,INVENTORY MANAGER'])->group(function (): vo
     Route::post('/api/products', [ProductController::class, 'store']);
     Route::get('/api/suppliers', [SupplierController::class, 'index']);
     Route::post('/api/suppliers', [SupplierController::class, 'store']);
+    Route::get('/api/inventory/expiring', [InventoryController::class, 'expiringSoon']);
+    Route::get('/api/inventory/low-stock', [InventoryController::class, 'lowStock']);
+    Route::post('/api/inventory/losses', [InventoryController::class, 'markAsLoss']);
 });
 
 Route::middleware(['role:SUPER ADMIN,CASHIER'])->group(function (): void {
