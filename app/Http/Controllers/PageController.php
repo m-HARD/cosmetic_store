@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\Supplier;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\ReportService;
@@ -73,6 +74,30 @@ class PageController extends Controller
     public function products(): Response
     {
         return Inertia::render('Products/IndexPage');
+    }
+
+    public function productShow(Product $product): Response
+    {
+        return Inertia::render('Products/ShowPage', [
+            'productId' => $product->id,
+        ]);
+    }
+
+    public function productCreate(): Response
+    {
+        return Inertia::render('Products/CreatePage');
+    }
+
+    public function categories(): Response
+    {
+        return Inertia::render('Categories/IndexPage');
+    }
+
+    public function categoryShow(Category $category): Response
+    {
+        return Inertia::render('Categories/ShowPage', [
+            'categoryId' => $category->id,
+        ]);
     }
 
     public function users(): Response

@@ -44,8 +44,17 @@ Route::middleware(['auth', 'role:SUPER ADMIN,INVENTORY MANAGER'])->group(functio
     Route::get('/inventory', [PageController::class, 'inventory']);
     Route::get('/suppliers', [PageController::class, 'suppliers']);
     Route::get('/suppliers/{supplier}', [PageController::class, 'supplierShow']);
+    Route::get('/categories', [PageController::class, 'categories']);
+    Route::get('/categories/{category}', [PageController::class, 'categoryShow']);
     Route::get('/products', [PageController::class, 'products']);
+    Route::get('/products/create', [PageController::class, 'productCreate']);
+    Route::get('/products/{product}', [PageController::class, 'productShow']);
     Route::get('/api/categories', [CategoryController::class, 'index']);
+    Route::get('/api/categories/manage', [CategoryController::class, 'manageIndex']);
+    Route::get('/api/categories/{category}', [CategoryController::class, 'show']);
+    Route::post('/api/categories', [CategoryController::class, 'store']);
+    Route::put('/api/categories/{category}', [CategoryController::class, 'update']);
+    Route::delete('/api/categories/{category}', [CategoryController::class, 'destroy']);
     Route::get('/api/products', [ProductController::class, 'index']);
     Route::post('/api/products', [ProductController::class, 'store']);
     Route::get('/api/products/{product}', [ProductController::class, 'show']);

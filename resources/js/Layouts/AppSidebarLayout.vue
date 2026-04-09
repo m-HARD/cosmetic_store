@@ -57,6 +57,7 @@ const navGroups = computed(() => [
         icon: 'products',
         items: [
             { label: 'المنتجات', href: '/products', roles: ['SUPER ADMIN', 'INVENTORY MANAGER'], icon: 'products' },
+            { label: 'فئات المنتجات', href: '/categories', roles: ['SUPER ADMIN', 'INVENTORY MANAGER'], icon: 'products' },
             { label: 'الموردون', href: '/suppliers', roles: ['SUPER ADMIN', 'INVENTORY MANAGER'], icon: 'suppliers' },
             { label: 'المخزون والصلاحية', href: '/inventory', roles: ['SUPER ADMIN', 'INVENTORY MANAGER'], icon: 'products' },
         ],

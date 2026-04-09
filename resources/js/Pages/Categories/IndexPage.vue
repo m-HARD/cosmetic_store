@@ -11,38 +11,39 @@ const fieldErrors = ref({});
 const filters = reactive({
     search: '',
     has_products: 'all',
+    status: 'all',
 });
 
 const pagination = ref({ data: [], current_page: 1, last_page: 1, per_page: 15, total: 0 });
 const createModalOpen = ref(false);
 const createForm = reactive({
     name: '',
-    phone: '',
-    address: '',
-    notes: '',
+    description: '',
+    is_active: true,
 });
 
 const hasProductsText = computed(() => {
-    if (filters.has_products === 'yes') return 'بموردين لديهم منتجات فقط';
-    if (filters.has_products === 'no') return 'بموردين بدون منتجات فقط';
-    return 'كل الموردين';
+    if (filters.has_products === 'yes') return 'الفئات التي تحتوي منتجات فقط';
+    if (filters.has_products === 'no') return 'الفئات بدون منتجات فقط';
+    return 'كل الفئات';
 });
 
-async function fetchSuppliers(page = 1) {
+async function fetchCategories(page = 1) {
     loading.value = true;
     errorMsg.value = '';
     try {
-        const { data } = await axios.get('/api/suppliers', {
+        const { data } = await axios.get('/api/categories/manage', {
             params: {
                 page,
                 per_page: 15,
                 search: filters.search || undefined,
                 has_products: filters.has_products,
+                status: filters.status,
             },
         });
         pagination.value = data;
     } catch (e) {
-        errorMsg.value = e.response?.data?.message ?? 'تعذر تحميل الموردين.';
+        errorMsg.value = e.response?.data?.message ?? 'تعذر تحميل الفئات.';
     } finally {
         loading.value = false;
     }
@@ -54,46 +55,45 @@ watch(
     () => {
         clearTimeout(searchDebounce);
         searchDebounce = setTimeout(() => {
-            fetchSuppliers(1);
+            fetchCategories(1);
         }, 350);
     }
 );
 
 watch(
-    () => filters.has_products,
+    () => [filters.has_products, filters.status],
     () => {
-        fetchSuppliers(1);
+        fetchCategories(1);
     }
 );
 
 onMounted(() => {
-    fetchSuppliers(1);
+    fetchCategories(1);
 });
 
 function openCreateModal() {
-    Object.assign(createForm, { name: '', phone: '', address: '', notes: '' });
+    Object.assign(createForm, { name: '', description: '', is_active: true });
     fieldErrors.value = {};
     createModalOpen.value = true;
 }
 
-async function createSupplier() {
+async function createCategory() {
     saving.value = true;
     fieldErrors.value = {};
     errorMsg.value = '';
     try {
-        await axios.post('/api/suppliers', {
+        await axios.post('/api/categories', {
             name: createForm.name,
-            phone: createForm.phone || null,
-            address: createForm.address || null,
-            notes: createForm.notes || null,
+            description: createForm.description || null,
+            is_active: !!createForm.is_active,
         });
         createModalOpen.value = false;
-        await fetchSuppliers(1);
+        await fetchCategories(1);
     } catch (e) {
         if (e.response?.status === 422) {
             fieldErrors.value = e.response?.data?.errors ?? {};
         } else {
-            errorMsg.value = e.response?.data?.message ?? 'تعذر إضافة المورد.';
+            errorMsg.value = e.response?.data?.message ?? 'تعذر إضافة الفئة.';
         }
     } finally {
         saving.value = false;
@@ -106,15 +106,15 @@ async function createSupplier() {
         <main class="p-6">
             <div class="mb-6 flex items-center justify-between gap-3">
                 <div>
-                    <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-50">الموردون</h1>
-                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">عرض الموردين، عدد الأصناف لكل مورد، وتفاصيل المنتجات المقدّمة منهم.</p>
+                    <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-50">فئات المنتجات</h1>
+                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">إدارة الفئات، عرض عدد المنتجات، والدخول لتفاصيل وتعديل وحذف كل فئة.</p>
                 </div>
                 <button
                     type="button"
                     class="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
                     @click="openCreateModal"
                 >
-                    مورد جديد
+                    فئة جديدة
                 </button>
             </div>
 
@@ -124,25 +124,30 @@ async function createSupplier() {
 
             <section class="mb-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 <h2 class="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-200">البحث والفلترة</h2>
-                <div class="grid gap-3 sm:grid-cols-2">
+                <div class="grid gap-3 sm:grid-cols-3">
                     <div>
-                        <label class="mb-1 block text-xs text-zinc-500">بحث بالاسم / الهاتف / العنوان</label>
+                        <label class="mb-1 block text-xs text-zinc-500">بحث بالاسم أو الوصف</label>
                         <input
                             v-model="filters.search"
                             type="text"
-                            placeholder="مثال: مورد الشرق"
+                            placeholder="مثال: العناية بالبشرة"
                             class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800"
                         />
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs text-zinc-500">تصفية حسب المنتجات</label>
-                        <select
-                            v-model="filters.has_products"
-                            class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800"
-                        >
+                        <label class="mb-1 block text-xs text-zinc-500">حسب وجود المنتجات</label>
+                        <select v-model="filters.has_products" class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800">
                             <option value="all">الكل</option>
-                            <option value="yes">لديه منتجات</option>
+                            <option value="yes">تحتوي منتجات</option>
                             <option value="no">بدون منتجات</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs text-zinc-500">الحالة</label>
+                        <select v-model="filters.status" class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800">
+                            <option value="all">الكل</option>
+                            <option value="active">نشطة</option>
+                            <option value="inactive">غير نشطة</option>
                         </select>
                     </div>
                 </div>
@@ -154,27 +159,25 @@ async function createSupplier() {
                 <table v-else class="w-full min-w-[780px] text-right text-sm">
                     <thead class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800/80">
                         <tr>
-                            <th class="px-3 py-2 font-semibold">اسم المورد</th>
-                            <th class="px-3 py-2 font-semibold">الهاتف</th>
-                            <th class="px-3 py-2 font-semibold">العنوان</th>
-                            <th class="px-3 py-2 font-semibold">عدد المنتجات المقدمة</th>
+                            <th class="px-3 py-2 font-semibold">اسم الفئة</th>
+                            <th class="px-3 py-2 font-semibold">الوصف</th>
+                            <th class="px-3 py-2 font-semibold">الحالة</th>
+                            <th class="px-3 py-2 font-semibold">عدد المنتجات</th>
                             <th class="px-3 py-2 font-semibold">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="row in pagination.data" :key="row.id" class="border-b border-zinc-100 dark:border-zinc-800">
                             <td class="px-3 py-2 font-medium">{{ row.name }}</td>
-                            <td class="px-3 py-2">{{ row.phone || '—' }}</td>
-                            <td class="px-3 py-2">{{ row.address || '—' }}</td>
+                            <td class="px-3 py-2">{{ row.description || '—' }}</td>
+                            <td class="px-3 py-2">{{ row.is_active ? 'نشطة' : 'غير نشطة' }}</td>
                             <td class="px-3 py-2">
                                 <span class="rounded bg-zinc-100 px-2 py-1 text-xs font-semibold dark:bg-zinc-800">
                                     {{ row.products_count ?? 0 }}
                                 </span>
                             </td>
                             <td class="px-3 py-2">
-                                <a :href="`/suppliers/${row.id}`" class="text-xs text-indigo-600 hover:underline dark:text-indigo-400">
-                                    عرض التفاصيل
-                                </a>
+                                <a :href="`/categories/${row.id}`" class="text-xs text-indigo-600 hover:underline dark:text-indigo-400">عرض التفاصيل</a>
                             </td>
                         </tr>
                     </tbody>
@@ -183,22 +186,8 @@ async function createSupplier() {
                 <div v-if="pagination.last_page > 1" class="flex items-center justify-between border-t border-zinc-200 px-3 py-2 dark:border-zinc-700">
                     <span class="text-xs text-zinc-500">صفحة {{ pagination.current_page }} من {{ pagination.last_page }}</span>
                     <div class="flex gap-2">
-                        <button
-                            type="button"
-                            class="rounded border border-zinc-300 px-2 py-1 text-xs disabled:opacity-40 dark:border-zinc-600"
-                            :disabled="pagination.current_page <= 1"
-                            @click="fetchSuppliers(pagination.current_page - 1)"
-                        >
-                            السابق
-                        </button>
-                        <button
-                            type="button"
-                            class="rounded border border-zinc-300 px-2 py-1 text-xs disabled:opacity-40 dark:border-zinc-600"
-                            :disabled="pagination.current_page >= pagination.last_page"
-                            @click="fetchSuppliers(pagination.current_page + 1)"
-                        >
-                            التالي
-                        </button>
+                        <button type="button" class="rounded border border-zinc-300 px-2 py-1 text-xs disabled:opacity-40 dark:border-zinc-600" :disabled="pagination.current_page <= 1" @click="fetchCategories(pagination.current_page - 1)">السابق</button>
+                        <button type="button" class="rounded border border-zinc-300 px-2 py-1 text-xs disabled:opacity-40 dark:border-zinc-600" :disabled="pagination.current_page >= pagination.last_page" @click="fetchCategories(pagination.current_page + 1)">التالي</button>
                     </div>
                 </div>
             </div>
@@ -209,7 +198,7 @@ async function createSupplier() {
                 @click.self="createModalOpen = false"
             >
                 <div class="w-full max-w-lg rounded-xl bg-white p-4 shadow-xl dark:bg-zinc-900" @click.stop>
-                    <h2 class="mb-3 text-lg font-bold">إضافة مورد جديد</h2>
+                    <h2 class="mb-3 text-lg font-bold">إضافة فئة جديدة</h2>
                     <div class="space-y-3 text-sm">
                         <div>
                             <label class="mb-1 block text-zinc-600 dark:text-zinc-400">الاسم</label>
@@ -217,16 +206,15 @@ async function createSupplier() {
                             <p v-if="fieldErrors.name" class="mt-1 text-xs text-red-600">{{ fieldErrors.name[0] }}</p>
                         </div>
                         <div>
-                            <label class="mb-1 block text-zinc-600 dark:text-zinc-400">الهاتف</label>
-                            <input v-model="createForm.phone" class="w-full rounded border border-zinc-300 px-2 py-1.5 dark:border-zinc-600 dark:bg-zinc-800" />
+                            <label class="mb-1 block text-zinc-600 dark:text-zinc-400">الوصف</label>
+                            <textarea v-model="createForm.description" rows="2" class="w-full rounded border border-zinc-300 px-2 py-1.5 dark:border-zinc-600 dark:bg-zinc-800" />
                         </div>
                         <div>
-                            <label class="mb-1 block text-zinc-600 dark:text-zinc-400">العنوان</label>
-                            <input v-model="createForm.address" class="w-full rounded border border-zinc-300 px-2 py-1.5 dark:border-zinc-600 dark:bg-zinc-800" />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-zinc-600 dark:text-zinc-400">ملاحظات</label>
-                            <textarea v-model="createForm.notes" rows="2" class="w-full rounded border border-zinc-300 px-2 py-1.5 dark:border-zinc-600 dark:bg-zinc-800" />
+                            <label class="mb-1 block text-zinc-600 dark:text-zinc-400">الحالة</label>
+                            <select v-model="createForm.is_active" class="w-full rounded border border-zinc-300 px-2 py-1.5 dark:border-zinc-600 dark:bg-zinc-800">
+                                <option :value="true">نشطة</option>
+                                <option :value="false">غير نشطة</option>
+                            </select>
                         </div>
                     </div>
                     <div class="mt-4 flex justify-end gap-2">
@@ -235,7 +223,7 @@ async function createSupplier() {
                             type="button"
                             class="rounded bg-zinc-900 px-3 py-1.5 text-sm text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
                             :disabled="saving"
-                            @click="createSupplier"
+                            @click="createCategory"
                         >
                             {{ saving ? '…' : 'إضافة' }}
                         </button>
