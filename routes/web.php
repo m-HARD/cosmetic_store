@@ -43,6 +43,7 @@ Route::middleware(['auth', 'role:SUPER ADMIN,INVENTORY MANAGER,CASHIER,ACCOUNTS'
 Route::middleware(['auth', 'role:SUPER ADMIN,INVENTORY MANAGER'])->group(function (): void {
     Route::get('/inventory', [PageController::class, 'inventory']);
     Route::get('/suppliers', [PageController::class, 'suppliers']);
+    Route::get('/suppliers/{supplier}', [PageController::class, 'supplierShow']);
     Route::get('/products', [PageController::class, 'products']);
     Route::get('/api/categories', [CategoryController::class, 'index']);
     Route::get('/api/products', [ProductController::class, 'index']);
@@ -57,6 +58,8 @@ Route::middleware(['auth', 'role:SUPER ADMIN,INVENTORY MANAGER'])->group(functio
     Route::get('/api/suppliers/options', [SupplierController::class, 'options']);
     Route::get('/api/suppliers/{supplier}', [SupplierController::class, 'show']);
     Route::post('/api/suppliers', [SupplierController::class, 'store']);
+    Route::put('/api/suppliers/{supplier}', [SupplierController::class, 'update']);
+    Route::delete('/api/suppliers/{supplier}', [SupplierController::class, 'destroy']);
     Route::get('/api/inventory/expiring', [InventoryController::class, 'expiringSoon']);
     Route::get('/api/inventory/low-stock', [InventoryController::class, 'lowStock']);
     Route::get('/api/inventory/batches', [InventoryController::class, 'batches']);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Supplier;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\ReportService;
 use Inertia\Inertia;
@@ -50,6 +51,13 @@ class PageController extends Controller
     public function suppliers(): Response
     {
         return Inertia::render('Suppliers/IndexPage');
+    }
+
+    public function supplierShow(Supplier $supplier): Response
+    {
+        return Inertia::render('Suppliers/ShowPage', [
+            'supplierId' => $supplier->id,
+        ]);
     }
 
     public function expenses(): Response

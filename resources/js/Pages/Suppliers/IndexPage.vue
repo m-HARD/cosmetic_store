@@ -4,7 +4,6 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import AppSidebarLayout from '../../Layouts/AppSidebarLayout.vue';
 
 const loading = ref(true);
-const detailsLoading = ref(false);
 const errorMsg = ref('');
 
 const filters = reactive({
@@ -13,11 +12,6 @@ const filters = reactive({
 });
 
 const pagination = ref({ data: [], current_page: 1, last_page: 1, per_page: 15, total: 0 });
-
-const detailOpen = ref(false);
-const selected = ref(null);
-
-const money = (n) => (Number(n) || 0).toFixed(2);
 
 const hasProductsText = computed(() => {
     if (filters.has_products === 'yes') return 'بموردين لديهم منتجات فقط';
@@ -42,21 +36,6 @@ async function fetchSuppliers(page = 1) {
         errorMsg.value = e.response?.data?.message ?? 'تعذر تحميل الموردين.';
     } finally {
         loading.value = false;
-    }
-}
-
-async function openDetails(row) {
-    detailOpen.value = true;
-    detailsLoading.value = true;
-    selected.value = null;
-    try {
-        const { data } = await axios.get(`/api/suppliers/${row.id}`);
-        selected.value = data;
-    } catch (e) {
-        errorMsg.value = e.response?.data?.message ?? 'تعذر تحميل تفاصيل المورد.';
-        detailOpen.value = false;
-    } finally {
-        detailsLoading.value = false;
     }
 }
 
@@ -145,9 +124,9 @@ onMounted(() => {
                                 </span>
                             </td>
                             <td class="px-3 py-2">
-                                <button type="button" class="text-xs text-indigo-600 hover:underline dark:text-indigo-400" @click="openDetails(row)">
+                                <a :href="`/suppliers/${row.id}`" class="text-xs text-indigo-600 hover:underline dark:text-indigo-400">
                                     عرض التفاصيل
-                                </button>
+                                </a>
                             </td>
                         </tr>
                     </tbody>
@@ -176,58 +155,6 @@ onMounted(() => {
                 </div>
             </div>
 
-            <div
-                v-if="detailOpen"
-                class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
-                @click.self="detailOpen = false"
-            >
-                <div class="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white p-4 shadow-xl dark:bg-zinc-900" @click.stop>
-                    <div class="mb-4 flex items-center justify-between gap-2">
-                        <h2 class="text-lg font-bold">تفاصيل المورد</h2>
-                        <button type="button" class="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-600" @click="detailOpen = false">إغلاق</button>
-                    </div>
-
-                    <div v-if="detailsLoading" class="py-10 text-center text-zinc-500">جاري تحميل التفاصيل…</div>
-
-                    <template v-else-if="selected">
-                        <div class="mb-4 grid gap-3 rounded-lg border border-zinc-200 p-3 text-sm dark:border-zinc-700 sm:grid-cols-2">
-                            <div><span class="text-zinc-500">الاسم: </span>{{ selected.supplier.name }}</div>
-                            <div><span class="text-zinc-500">الهاتف: </span>{{ selected.supplier.phone || '—' }}</div>
-                            <div><span class="text-zinc-500">العنوان: </span>{{ selected.supplier.address || '—' }}</div>
-                            <div><span class="text-zinc-500">عدد المنتجات: </span>{{ selected.products_count }}</div>
-                            <div><span class="text-zinc-500">إجمالي الكميات المتاحة: </span>{{ selected.products_stock_total }}</div>
-                            <div class="sm:col-span-2"><span class="text-zinc-500">ملاحظات: </span>{{ selected.supplier.notes || '—' }}</div>
-                        </div>
-
-                        <h3 class="mb-2 text-sm font-semibold">تفاصيل المنتجات</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full min-w-[760px] text-right text-sm">
-                                <thead class="border-b border-zinc-200 dark:border-zinc-700">
-                                    <tr>
-                                        <th class="px-2 py-1">المنتج</th>
-                                        <th class="px-2 py-1">الباركود</th>
-                                        <th class="px-2 py-1">الفئة</th>
-                                        <th class="px-2 py-1">سعر البيع</th>
-                                        <th class="px-2 py-1">المخزون</th>
-                                        <th class="px-2 py-1">نشط</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="product in selected.products" :key="product.id" class="border-b border-zinc-100 dark:border-zinc-800">
-                                        <td class="px-2 py-1 font-medium">{{ product.name }}</td>
-                                        <td class="px-2 py-1 font-mono text-xs">{{ product.barcode }}</td>
-                                        <td class="px-2 py-1">{{ product.category?.name || '—' }}</td>
-                                        <td class="px-2 py-1">{{ money(product.sale_price) }}</td>
-                                        <td class="px-2 py-1">{{ product.total_stock ?? 0 }}</td>
-                                        <td class="px-2 py-1">{{ product.is_active ? 'نعم' : 'لا' }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <p v-if="!selected.products?.length" class="py-4 text-center text-sm text-zinc-500">لا توجد منتجات لهذا المورد.</p>
-                    </template>
-                </div>
-            </div>
         </main>
     </AppSidebarLayout>
 </template>

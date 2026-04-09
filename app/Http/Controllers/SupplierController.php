@@ -6,6 +6,8 @@ use App\Models\Product;
 use App\Models\Supplier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class SupplierController extends Controller
 {
@@ -86,5 +88,75 @@ class SupplierController extends Controller
         ]);
 
         return response()->json(Supplier::query()->create($payload), 201);
+    }
+
+    public function update(Request $request, Supplier $supplier): JsonResponse
+    {
+        $payload = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        $supplier->update($payload);
+
+        return response()->json($supplier->refresh());
+    }
+
+    public function destroy(Request $request, Supplier $supplier): JsonResponse
+    {
+        $productsCount = Product::query()
+            ->where('supplier_id', $supplier->id)
+            ->count();
+
+        if ($productsCount === 0) {
+            $supplier->delete();
+
+            return response()->json(['message' => 'تم حذف المورد بنجاح.']);
+        }
+
+        $validated = $request->validate([
+            'password' => ['nullable', 'string'],
+            'transfer_supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
+        ]);
+
+        $transferSupplierId = $validated['transfer_supplier_id'] ?? null;
+        if ($transferSupplierId && (int) $transferSupplierId === (int) $supplier->id) {
+            return response()->json([
+                'message' => 'لا يمكن نقل المنتجات إلى نفس المورد.',
+                'errors' => ['transfer_supplier_id' => ['لا يمكن نقل المنتجات إلى نفس المورد.']],
+            ], 422);
+        }
+
+        if ($transferSupplierId) {
+            Product::query()
+                ->where('supplier_id', $supplier->id)
+                ->update(['supplier_id' => (int) $transferSupplierId]);
+
+            $supplier->delete();
+
+            return response()->json(['message' => 'تم نقل المنتجات وحذف المورد بنجاح.']);
+        }
+
+        $password = $validated['password'] ?? null;
+        if (!$password || !Hash::check($password, (string) $request->user()?->password)) {
+            return response()->json([
+                'message' => 'كلمة المرور غير صحيحة.',
+                'errors' => ['password' => ['كلمة المرور غير صحيحة.']],
+            ], 422);
+        }
+
+        DB::transaction(function () use ($supplier): void {
+            Product::query()
+                ->where('supplier_id', $supplier->id)
+                ->get()
+                ->each
+                ->delete();
+
+            $supplier->delete();
+        });
+
+        return response()->json(['message' => 'تم حذف المورد وجميع منتجاته بنجاح.']);
     }
 }
