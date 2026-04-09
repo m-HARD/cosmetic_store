@@ -14,6 +14,7 @@ class ProductRepository implements ProductRepositoryInterface
     {
         return Product::query()
             ->with(['category', 'supplier'])
+            ->withSum('batches as total_stock', 'remaining_quantity')
             ->latest('id')
             ->paginate($perPage);
     }

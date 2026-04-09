@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\POSController;
+use App\Http\Controllers\ProductBatchController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\ReportController;
@@ -42,12 +44,22 @@ Route::middleware(['auth', 'role:SUPER ADMIN,INVENTORY MANAGER'])->group(functio
     Route::get('/inventory', [PageController::class, 'inventory']);
     Route::get('/suppliers', [PageController::class, 'suppliers']);
     Route::get('/products', [PageController::class, 'products']);
+    Route::get('/api/categories', [CategoryController::class, 'index']);
     Route::get('/api/products', [ProductController::class, 'index']);
     Route::post('/api/products', [ProductController::class, 'store']);
+    Route::get('/api/products/{product}', [ProductController::class, 'show']);
+    Route::put('/api/products/{product}', [ProductController::class, 'update']);
+    Route::delete('/api/products/{product}', [ProductController::class, 'destroy']);
+    Route::get('/api/products/{product}/batches', [ProductBatchController::class, 'index']);
+    Route::post('/api/products/{product}/batches', [ProductBatchController::class, 'store']);
+    Route::patch('/api/batches/{batch}', [ProductBatchController::class, 'update']);
     Route::get('/api/suppliers', [SupplierController::class, 'index']);
+    Route::get('/api/suppliers/options', [SupplierController::class, 'options']);
+    Route::get('/api/suppliers/{supplier}', [SupplierController::class, 'show']);
     Route::post('/api/suppliers', [SupplierController::class, 'store']);
     Route::get('/api/inventory/expiring', [InventoryController::class, 'expiringSoon']);
     Route::get('/api/inventory/low-stock', [InventoryController::class, 'lowStock']);
+    Route::get('/api/inventory/batches', [InventoryController::class, 'batches']);
     Route::post('/api/inventory/losses', [InventoryController::class, 'markAsLoss']);
 });
 
